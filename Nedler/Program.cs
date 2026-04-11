@@ -27,11 +27,10 @@ namespace NelderMeadMethod
             Vertexes = new double[VertexCount][];
             Values = new double[VertexCount];
 
-            // Первая вершина — начальная точка
+           
             Vertexes[0] = new double[Dimension];
             Array.Copy(startPoint, Vertexes[0], Dimension);
 
-            // Остальные вершины: сдвиг по одной координате
             for (int i = 1; i < VertexCount; i++)
             {
                 Vertexes[i] = new double[Dimension];
@@ -157,10 +156,10 @@ namespace NelderMeadMethod
 
     public class NelderMeadOptimizer
     {
-        public double ReflectionCoeff { get; set; } = 1.0;   // alpha
-        public double ExpansionCoeff { get; set; } = 2.0;    // gamma
-        public double ContractionCoeff { get; set; } = 0.5;  // rho
-        public double ShrinkCoeff { get; set; } = 0.5;       // sigma
+        public double ReflectionCoeff { get; set; } = 1.0;  
+        public double ExpansionCoeff { get; set; } = 2.0;   
+        public double ContractionCoeff { get; set; } = 0.5;  
+        public double ShrinkCoeff { get; set; } = 0.5;       
         public double Step { get; set; } = 0.5;
         public double Accuracy { get; set; } = 1e-6;
 
@@ -204,7 +203,7 @@ namespace NelderMeadMethod
                 double secondWorstValue = simplex.GetSecondWorstValue();
                 double worstValue = simplex.GetValue(simplex.VertexCount - 1);
 
-                // 1. Отражение
+              
                 double[] reflected = new double[simplex.Dimension];
                 for (int j = 0; j < simplex.Dimension; j++)
                 {
@@ -213,7 +212,7 @@ namespace NelderMeadMethod
 
                 double reflectedValue = objectiveFunction(reflected);
 
-                // 2. Если отражённая точка лучше лучшей — пробуем растяжение
+               
                 if (reflectedValue < bestValue)
                 {
                     double[] expanded = new double[simplex.Dimension];
@@ -233,7 +232,7 @@ namespace NelderMeadMethod
                     continue;
                 }
 
-                // 3. Если отражение лучше второй худшей точки — принимаем его
+              
                 if (reflectedValue < secondWorstValue)
                 {
                     simplex.ReplaceWorstVertex(reflected, reflectedValue);
@@ -241,10 +240,10 @@ namespace NelderMeadMethod
                     continue;
                 }
 
-                // 4. Сжатие
+             
                 double[] contracted = new double[simplex.Dimension];
 
-                // Внешнее сжатие
+                
                 if (reflectedValue < worstValue)
                 {
                     for (int j = 0; j < simplex.Dimension; j++)
@@ -252,7 +251,7 @@ namespace NelderMeadMethod
                         contracted[j] = centroid[j] + ContractionCoeff * (reflected[j] - centroid[j]);
                     }
                 }
-                // Внутреннее сжатие
+               
                 else
                 {
                     for (int j = 0; j < simplex.Dimension; j++)
@@ -270,7 +269,7 @@ namespace NelderMeadMethod
                     continue;
                 }
 
-                // 5. Если сжатие не помогло — уменьшаем весь симплекс
+              
                 simplex.Shrink(objectiveFunction, ShrinkCoeff);
             }
 
