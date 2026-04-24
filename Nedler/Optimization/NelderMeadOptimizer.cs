@@ -1,5 +1,6 @@
 using System;
 using NelderMeadMethod.Core;
+using System.Collections.Generic;
 
 namespace NelderMeadMethod.Optimization
 {
@@ -11,6 +12,7 @@ namespace NelderMeadMethod.Optimization
         public double ShrinkCoeff { get; set; } = 0.5;
         public double Step { get; set; } = 0.5;
         public double Accuracy { get; set; } = 1e-6;
+        public List<double> HistoryValues { get; } = new List<double>();
 
         private readonly Func<double[], double> objectiveFunction;
 
@@ -27,6 +29,7 @@ namespace NelderMeadMethod.Optimization
 
             for (int iter = 0; iter < maxIterations; iter++)
             {
+                HistoryValues.Add(simplex.GetValue(0)); 
                 if (simplex.IsConverged(Accuracy))
                     break;
 
