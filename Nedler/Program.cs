@@ -2,6 +2,8 @@
 using NelderMeadMethod.Optimization;
 using System.IO;
 using System.Linq;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace NelderMeadMethod
 {
@@ -26,9 +28,19 @@ namespace NelderMeadMethod
             double[] result = optimizer.Optimize(start, 500);
 
             var lines = optimizer.HistoryValues
-            .Select((value, index) => $"{index},{value}");
+            .Select((value, index) =>
+            $"{index},{value.ToString(CultureInfo.InvariantCulture)}");
 
             File.WriteAllLines("convergence.csv", lines);
+
+            var psi = new ProcessStartInfo
+            {
+            FileName = "py",
+            Arguments = "-3 plot.py",
+            UseShellExecute = true
+            };
+
+            Process.Start(psi);
 
             Console.WriteLine("Найденный минимум:");
             for (int i = 0; i < result.Length; i++)

@@ -29,7 +29,7 @@ namespace NelderMeadMethod.Optimization
 
             for (int iter = 0; iter < maxIterations; iter++)
             {
-                HistoryValues.Add(simplex.GetValue(0)); 
+                HistoryValues.Add(simplex.GetValue(0));
                 if (simplex.IsConverged(Accuracy))
                     break;
 
