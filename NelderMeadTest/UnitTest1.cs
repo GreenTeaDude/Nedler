@@ -1,6 +1,7 @@
 using System;
 using Xunit;
-using NelderMeadMethod;
+using NelderMeadMethod.Core;
+using NelderMeadMethod.Optimization;
 
 namespace NelderMeadMethod.Tests
 {
