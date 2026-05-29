@@ -12,7 +12,9 @@ namespace NelderMeadMethod.Optimization
         public double ShrinkCoeff { get; set; } = 0.5;
         public double Step { get; set; } = 0.5;
         public double Accuracy { get; set; } = 1e-6;
+
         public List<double> HistoryValues { get; } = new List<double>();
+        public List<SimplexSnapshot> HistorySimplex { get; } = new List<SimplexSnapshot>();
 
         private readonly Func<double[], double> objectiveFunction;
 
@@ -27,9 +29,13 @@ namespace NelderMeadMethod.Optimization
             simplex.UpdateValues(objectiveFunction);
             simplex.SortVertexes();
 
+            
+            SaveSimplexSnapshot(simplex, 0);
+
             for (int iter = 0; iter < maxIterations; iter++)
             {
                 HistoryValues.Add(simplex.GetValue(0));
+
                 if (simplex.IsConverged(Accuracy))
                     break;
 
@@ -40,7 +46,6 @@ namespace NelderMeadMethod.Optimization
                 double secondWorst = simplex.GetSecondWorstValue();
                 double worstVal = simplex.GetValue(simplex.VertexCount - 1);
 
-                // Reflection
                 double[] reflected = new double[simplex.Dimension];
                 for (int i = 0; i < simplex.Dimension; i++)
                     reflected[i] = centroid[i] + ReflectionCoeff * (centroid[i] - worst[i]);
@@ -49,7 +54,6 @@ namespace NelderMeadMethod.Optimization
 
                 if (reflectedVal < best)
                 {
-                    // Expansion
                     double[] expanded = new double[simplex.Dimension];
                     for (int i = 0; i < simplex.Dimension; i++)
                         expanded[i] = centroid[i] + ExpansionCoeff * (reflected[i] - centroid[i]);
@@ -62,6 +66,7 @@ namespace NelderMeadMethod.Optimization
                         simplex.ReplaceWorstVertex(reflected, reflectedVal);
 
                     simplex.SortVertexes();
+                    SaveSimplexSnapshot(simplex, iter + 1);
                     continue;
                 }
 
@@ -69,10 +74,10 @@ namespace NelderMeadMethod.Optimization
                 {
                     simplex.ReplaceWorstVertex(reflected, reflectedVal);
                     simplex.SortVertexes();
+                    SaveSimplexSnapshot(simplex, iter + 1);
                     continue;
                 }
 
-                // Contraction
                 double[] contracted = new double[simplex.Dimension];
 
                 if (reflectedVal < worstVal)
@@ -92,14 +97,73 @@ namespace NelderMeadMethod.Optimization
                 {
                     simplex.ReplaceWorstVertex(contracted, contractedVal);
                     simplex.SortVertexes();
+                    SaveSimplexSnapshot(simplex, iter + 1);
                     continue;
                 }
 
-                // Shrink
                 simplex.Shrink(objectiveFunction, ShrinkCoeff);
+                SaveSimplexSnapshot(simplex, iter + 1);
             }
 
             return simplex.GetBestVertex();
         }
+
+        private void SaveSimplexSnapshot(Simplex simplex, int iteration)
+        {
+            var snapshot = new SimplexSnapshot
+            {
+                Iteration = iteration,
+                VertexCount = simplex.VertexCount,
+                Dimension = simplex.Dimension
+            };
+
+            snapshot.Vertexes = new double[simplex.VertexCount][];
+            for (int i = 0; i < simplex.VertexCount; i++)
+            {
+                snapshot.Vertexes[i] = (double[])simplex.Vertexes[i].Clone();
+            }
+
+            snapshot.Values = new double[simplex.VertexCount];
+            for (int i = 0; i < simplex.VertexCount; i++)
+            {
+                snapshot.Values[i] = simplex.Values[i];
+            }
+
+            HistorySimplex.Add(snapshot);
+        }
+
+        public void SaveSimplexHistoryToFile(string filename)
+        {
+            using (var writer = new System.IO.StreamWriter(filename))
+            {
+                
+                writer.WriteLine("# Simplex evolution history");
+                writer.WriteLine($"# Total iterations: {HistorySimplex.Count}");
+                writer.WriteLine("# Format: iteration,vertex_index,x1,x2,...,xn,function_value");
+                writer.WriteLine("# ---");
+
+                foreach (var snapshot in HistorySimplex)
+                {
+                    for (int i = 0; i < snapshot.VertexCount; i++)
+                    {
+                        writer.Write($"{snapshot.Iteration},{i}");
+                        for (int j = 0; j < snapshot.Dimension; j++)
+                        {
+                            writer.Write($",{snapshot.Vertexes[i][j].ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        }
+                        writer.WriteLine($",{snapshot.Values[i].ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+                }
+            }
+        }
+    }
+
+    public class SimplexSnapshot
+    {
+        public int Iteration { get; set; }
+        public int VertexCount { get; set; }
+        public int Dimension { get; set; }
+        public double[][] Vertexes { get; set; }
+        public double[] Values { get; set; }
     }
 }
